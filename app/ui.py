@@ -1,8 +1,10 @@
 """Shared Streamlit helpers: paths, theme CSS, citation rendering, mapping table, quiz."""
 from __future__ import annotations
 
+import html
 import re
 import sys
+from urllib.parse import quote, urlparse
 from pathlib import Path
 
 import streamlit as st
@@ -49,8 +51,21 @@ def chunk(anime: str, cid: str) -> dict | None:
         return None
 
 
+def safe_url(url: str | None) -> str:
+    """Only https links to fandom.com; anything else becomes '#'. Quoted so it can't break out of markdown/HTML."""
+    if not url:
+        return "#"
+    u = urlparse(url)
+    if u.scheme != "https" or not (u.hostname or "").endswith(".fandom.com"):
+        return "#"
+    return quote(url, safe=":/#?=&%_.-~")
+
+
 def render_citations(md: str, anime: str) -> tuple[str, list[dict]]:
-    """Replace [anime:page:n] markers with numbered superscript links; return the source list."""
+    """Replace [anime:page:n] markers with numbered markdown links; return the source list.
+
+    The result is meant for st.markdown WITHOUT unsafe_allow_html: the lesson text comes from the LLM, which reads
+    publicly editable wiki text, so it must never be rendered as raw HTML."""
     order: dict[str, int] = {}
     sources = []
 
@@ -63,8 +78,7 @@ def render_citations(md: str, anime: str) -> tuple[str, list[dict]]:
                 c = chunk(anime, cid)
                 sources.append({"n": order[cid], "id": cid, "chunk": c})
             c = chunk(anime, cid)
-            url = c["url"] if c else "#"
-            out.append(f'<a class="cite" href="{url}" target="_blank" title="{cid}">[{order[cid]}]</a>')
+            out.append(f"[\\[{order[cid]}\\]]({safe_url(c['url'] if c else None)})")
         return "".join(out)
 
     return re.sub(r"\[[^\]]*(?:naruto|hxh|jjk):[^\]]*\]", sub, md), sources
@@ -73,7 +87,7 @@ def render_citations(md: str, anime: str) -> tuple[str, list[dict]]:
 def verdict_pill(v: str) -> str:
     cls = {"supported": "ok", "unsupported": "warn", "contradicted": "bad", "yes": "ok", "partial": "warn",
            "no": "bad"}.get(str(v).lower(), "mute")
-    return f'<span class="pill {cls}">{v}</span>'
+    return f'<span class="pill {cls}">{html.escape(str(v))}</span>'
 
 
 def mapping_table(chosen: dict, topic: str):
@@ -83,7 +97,8 @@ def mapping_table(chosen: dict, topic: str):
     rows = []
     for r in card["roles"]:
         a = (roles.get(r["id"]) or {}).get("anime")
-        rows.append(f"<tr><td><b>{r['name']}</b></td><td>{a or '<i>no counterpart</i>'}</td>"
+        rows.append(f"<tr><td><b>{html.escape(r['name'])}</b></td>"
+                    f"<td>{html.escape(str(a)) if a else '<i>no counterpart</i>'}</td>"
                     f"<td>{verdict_pill('mapped' if a else 'missing')}</td></tr>")
     st.markdown("<table style='width:100%'><tr><th>CS role</th><th>Anime counterpart</th><th></th></tr>"
                 + "".join(rows) + "</table>", unsafe_allow_html=True)
@@ -91,8 +106,8 @@ def mapping_table(chosen: dict, topic: str):
     rrows = []
     for r in card["relations"]:
         x = rels.get(r["id"]) or {}
-        rrows.append(f"<tr><td>{r['desc']}</td><td>{verdict_pill(x.get('holds', 'no'))}</td>"
-                     f"<td style='color:#4a5568'>{x.get('explanation', '')}</td></tr>")
+        rrows.append(f"<tr><td>{html.escape(r['desc'])}</td><td>{verdict_pill(x.get('holds', 'no'))}</td>"
+                     f"<td style='color:#4a5568'>{html.escape(str(x.get('explanation', '')))}</td></tr>")
     st.markdown("<table style='width:100%'><tr><th>Structural rule</th><th>Holds?</th><th>How</th></tr>"
                 + "".join(rrows) + "</table>", unsafe_allow_html=True)
 

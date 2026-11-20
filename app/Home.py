@@ -58,12 +58,12 @@ def show(lesson: dict, title: str):
            if d.get("first_draft") else ""),
         unsafe_allow_html=True)
     body, sources = ui.render_citations(d["markdown"], lesson.get("anime", anime) if "anime" in lesson else anime)
-    st.markdown(body, unsafe_allow_html=True)
+    st.markdown(body)  # LLM text: never unsafe_allow_html
     with st.expander(f"Fact check: {len(chk.get('claims', []))} claims"):
         for c in chk.get("claims", []):
             ok = c["verdict"] == "supported"
             st.markdown(f'<div class="claim {"ok" if ok else "bad"}">{ui.verdict_pill(c["verdict"])}'
-                        f'<span class="pill mute">{c["type"]}</span>{html.escape(c["text"])}'
+                        f'<span class="pill mute">{html.escape(str(c["type"]))}</span>{html.escape(c["text"])}'
                         + (f'<br><small style="color:#718096">{html.escape(c.get("note", ""))}</small>'
                            if c.get("note") and not ok else "") + "</div>", unsafe_allow_html=True)
     if sources:
@@ -71,7 +71,8 @@ def show(lesson: dict, title: str):
             for s in sources:
                 c = s["chunk"]
                 if c:
-                    st.markdown(f"**[{s['n']}]** [{c['title']} / {c['heading']}]({c['url']}) (rev {c['revid']})  \n"
+                    st.markdown(f"**[{s['n']}]** [{html.escape(c['title'])} / {html.escape(c['heading'])}]"
+                                f"({ui.safe_url(c['url'])}) (rev {html.escape(str(c['revid']))})  \n"
                                 f"<small>{html.escape(c['text'][:300])}...</small>", unsafe_allow_html=True)
 
 

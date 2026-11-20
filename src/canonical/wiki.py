@@ -10,6 +10,7 @@ import json
 import re
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
@@ -91,7 +92,7 @@ def fetch_page(wiki: str, title: str) -> dict:
     real = p["title"]
     return {
         "title": real,
-        "url": f"https://{wiki}.fandom.com/wiki/{real.replace(' ', '_')}",
+        "url": f"https://{wiki}.fandom.com/wiki/{quote(real.replace(' ', '_'), safe='_()-.:')}",
         "revid": p.get("revid"),
         "license": "CC BY-SA (Fandom)",
         "sections": clean_sections(p["text"]["*"]),
