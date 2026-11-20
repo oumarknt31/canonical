@@ -1,0 +1,185 @@
+{
+  "id": "hash_table",
+  "name": "Hash Table",
+  "cs2023": "AL: Foundational Data Structures and Algorithms",
+  "level": "CS2",
+  "definition": "A hash table implements a map (or set) by storing key-value pairs in an array of buckets, using a hash function to compute each key's bucket index from the key itself. Different keys can map to the same bucket (a collision), which is resolved by chaining or by open addressing (probing). With a hash function that spreads keys evenly and a load factor kept bounded by resizing, insert, lookup, and delete take O(1) time on average, although the worst case is O(n).",
+  "roles": [
+    {
+      "id": "key",
+      "name": "Key",
+      "desc": "The identifier used to store and look up an entry; each key appears at most once in the table."
+    },
+    {
+      "id": "value",
+      "name": "Value",
+      "desc": "The data associated with a key."
+    },
+    {
+      "id": "hash_function",
+      "name": "Hash function",
+      "desc": "Function that turns a key into an integer, which is reduced (e.g., modulo the number of buckets) to a bucket index."
+    },
+    {
+      "id": "buckets",
+      "name": "Buckets (array)",
+      "desc": "The underlying array of slots where entries are stored, indexed by the reduced hash value."
+    },
+    {
+      "id": "collision_resolution",
+      "name": "Collision resolution",
+      "desc": "Strategy for storing several keys that map to the same bucket: chaining (a list per bucket) or open addressing (probing for another free slot)."
+    },
+    {
+      "id": "load_factor",
+      "name": "Load factor and resizing",
+      "desc": "Load factor = number of entries / number of buckets; when it passes a threshold, the table grows and rehashes all entries."
+    }
+  ],
+  "relations": [
+    {
+      "id": "hash_selects_bucket",
+      "desc": "A key's bucket is computed from the key, e.g., index = hash(key) mod number_of_buckets, so lookup goes directly to one bucket instead of scanning all entries.",
+      "involves": [
+        "hash_function",
+        "key",
+        "buckets"
+      ]
+    },
+    {
+      "id": "deterministic_hash",
+      "desc": "Equal keys must always produce the same hash value; if a key's hash could change while it is stored (e.g., a mutated key), the entry could no longer be found.",
+      "involves": [
+        "hash_function",
+        "key"
+      ]
+    },
+    {
+      "id": "collisions_resolved_by_key_compare",
+      "desc": "Distinct keys can map to the same bucket, so the table resolves collisions by chaining or probing, and it stores each key with its value so a lookup can compare actual keys to find the right entry.",
+      "involves": [
+        "key",
+        "value",
+        "buckets",
+        "collision_resolution"
+      ]
+    },
+    {
+      "id": "unique_keys",
+      "desc": "Each key maps to at most one value; inserting a key that is already present replaces its value instead of adding a second entry.",
+      "involves": [
+        "key",
+        "value"
+      ]
+    },
+    {
+      "id": "average_constant_time",
+      "desc": "Insert, lookup, and delete are O(1) on average when the hash function spreads keys evenly and the load factor is bounded; if many keys collide, these operations degrade toward O(n).",
+      "involves": [
+        "hash_function",
+        "collision_resolution",
+        "load_factor"
+      ]
+    },
+    {
+      "id": "resize_and_rehash",
+      "desc": "When the load factor exceeds a threshold, the table allocates a larger bucket array and reinserts every entry using its hash, because bucket indices depend on the number of buckets; this costs O(n) occasionally but keeps operations O(1) amortized.",
+      "involves": [
+        "load_factor",
+        "buckets",
+        "hash_function"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "always_constant",
+      "wrong": "Hash table lookup is guaranteed O(1) no matter what.",
+      "correct": "O(1) is the average case under a good hash function and bounded load factor. If many keys land in the same bucket, lookup can take O(n) in the worst case."
+    },
+    {
+      "id": "collisions_are_bugs",
+      "wrong": "Two different keys can never land in the same bucket; if they do, the hash function is broken.",
+      "correct": "Collisions are unavoidable whenever there are more possible keys than buckets (pigeonhole principle). Hash tables are designed to handle them with chaining or probing."
+    },
+    {
+      "id": "ordered_keys",
+      "wrong": "A hash table keeps its keys sorted, so I can iterate through them in order.",
+      "correct": "Placement depends on hash values, not on key order, so a hash table provides no sorted order. Use a balanced search tree or sort the keys when order matters. (Some language libraries, like Python's dict, add insertion-order iteration as an extra feature, not sorted order.)"
+    },
+    {
+      "id": "resize_copies_indices",
+      "wrong": "When the table grows, entries can simply be copied to the same indices in the bigger array.",
+      "correct": "Each index is computed relative to the number of buckets, so after resizing every entry must be rehashed into its new bucket; otherwise lookups compute new indices and miss the old entries."
+    }
+  ],
+  "breaks_hint": "Locker or coat-check analogies imply every key gets its own unique slot, while real hash tables expect collisions and must store each key with its value to tell entries apart. They also hide that the table resizes and rehashes as it fills, and that O(1) speed is an average, not a guarantee.",
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "recall",
+      "q": "What is the job of the hash function in a hash table?",
+      "choices": [
+        "To sort the keys",
+        "To encrypt the stored values",
+        "To turn a key into an index that selects a bucket",
+        "To count how many entries are stored"
+      ],
+      "answer": 2,
+      "explain": "The hash function maps a key to an integer, which is reduced to a bucket index so the table can jump straight to where that key belongs."
+    },
+    {
+      "id": "q2",
+      "type": "recall",
+      "q": "In a hash table, what is a collision?",
+      "choices": [
+        "Two different keys mapping to the same bucket",
+        "Inserting the same key twice",
+        "The table running out of memory",
+        "A lookup for a key that is not present"
+      ],
+      "answer": 0,
+      "explain": "A collision happens when distinct keys produce the same bucket index. Inserting an existing key just updates its value."
+    },
+    {
+      "id": "q3",
+      "type": "transfer",
+      "q": "A hash table has 10 buckets, uses hash(k) = k mod 10, and resolves collisions by chaining. You insert the keys 12, 22, 35, and 42. How many keys end up in bucket 2?",
+      "choices": [
+        "1",
+        "2",
+        "4",
+        "3"
+      ],
+      "answer": 3,
+      "explain": "12 mod 10 = 2, 22 mod 10 = 2, 42 mod 10 = 2, and 35 mod 10 = 5. Three keys share bucket 2's chain."
+    },
+    {
+      "id": "q4",
+      "type": "transfer",
+      "q": "A hash table with 8 buckets holds 6 entries and grows when its load factor exceeds 0.75. What happens when one more new key is inserted?",
+      "choices": [
+        "Nothing special, because some buckets are still empty",
+        "The table grows (for example, to 16 buckets) and rehashes every entry into its new bucket",
+        "The table grows and copies every entry to the same index in the larger array",
+        "The insertion is rejected because the table is full"
+      ],
+      "answer": 1,
+      "explain": "After the insert the load factor is 7/8 = 0.875 > 0.75, so the table resizes. Since indices depend on the number of buckets, all entries must be rehashed, not copied to the same index."
+    },
+    {
+      "id": "q5",
+      "type": "misconception",
+      "q": "A student writes a hash function that returns the same value for every key and says: \"It still works fine, because hash table lookups are always O(1).\" What is correct?",
+      "choices": [
+        "The student is right; O(1) lookup is guaranteed regardless of the hash function",
+        "The student is right, because the table will resize and spread the keys out",
+        "The student is wrong; every key lands in the same bucket, so lookup must search through all n entries, which is O(n)",
+        "The student is wrong; lookup becomes O(log n)"
+      ],
+      "answer": 2,
+      "explain": "The table is still correct, because keys are compared, but it is slow: with every key colliding, lookup degrades to O(n). Resizing does not help, because a constant hash still sends every key to one bucket."
+    }
+  ],
+  "generic_lesson": "Picture a mailroom with 26 cubbies, one per letter. To store a package, the clerk applies a fixed rule to the recipient's last name, the key: take the first letter and put the package in that cubby. The rule is the hash function, the cubbies are buckets, and the package is the value. To find it later, the clerk applies the same rule and goes straight to one cubby instead of searching the room. The rule must always give the same cubby for the same name, or packages would be lost.\n\nTwo people, Garcia and Gupta, both map to cubby G. That is a collision, which is normal. The clerk keeps a short list of packages in each cubby (chaining); another design would try the next free cubby (probing). Either way, each package is labeled with its full name, so the clerk checks names to pick the right one. Each name has one entry; a new package for the same name replaces the old one.\n\nWhen cubbies hold only a few packages, finding one is fast: constant time on average, O(1). If cubbies overflow, searching slows toward O(n). So the clerk tracks the load factor, packages per cubby, and when it grows too high, adds cubbies and re-sorts every package using a new rule fitted to the larger count."
+}

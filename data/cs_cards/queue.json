@@ -1,0 +1,38 @@
+{
+  "id": "queue",
+  "name": "Queue",
+  "cs2023": "SDF: Fundamental Data Structures",
+  "level": "CS2",
+  "definition": "A queue is a linear abstract data type that stores elements in first-in, first-out (FIFO) order. Elements are added at one end, the rear, with enqueue and removed from the other end, the front, with dequeue; peek (front) returns the front element without removing it. With a linked list or a circular array, enqueue and dequeue each take O(1) time.",
+  "roles": [
+    {"id": "queue", "name": "Queue (container)", "desc": "The collection that holds elements in arrival order and allows insertion at one end and removal at the other."},
+    {"id": "element", "name": "Element", "desc": "A single item waiting in the queue."},
+    {"id": "front", "name": "Front", "desc": "The end where elements are removed; holds the element that has waited longest. Peek returns it without removing it."},
+    {"id": "rear", "name": "Rear (back)", "desc": "The end where new elements are added; holds the most recently enqueued element."},
+    {"id": "enqueue", "name": "Enqueue", "desc": "Operation that adds a new element at the rear."},
+    {"id": "dequeue", "name": "Dequeue", "desc": "Operation that removes the front element and returns it."}
+  ],
+  "relations": [
+    {"id": "fifo_order", "desc": "Elements are dequeued in exactly the order they were enqueued; the element that has been in the queue longest is always removed next.", "involves": ["enqueue", "dequeue", "element"]},
+    {"id": "enqueue_at_rear", "desc": "Enqueue adds the new element at the rear, behind every element already in the queue, and it becomes the new rear.", "involves": ["enqueue", "rear", "element"]},
+    {"id": "dequeue_at_front", "desc": "Dequeue removes and returns the element at the front, and the element behind it becomes the new front.", "involves": ["dequeue", "front", "element"]},
+    {"id": "access_only_at_ends", "desc": "Elements cannot be inserted, removed, or reordered in the middle: insertion happens only at the rear and removal only at the front.", "involves": ["queue", "front", "rear"]},
+    {"id": "underflow_on_empty", "desc": "Calling dequeue or peek on an empty queue is an error (underflow) or returns a sentinel value; it never produces an element.", "involves": ["queue", "dequeue", "front"]},
+    {"id": "constant_time_ops", "desc": "Enqueue and dequeue take O(1) time with a linked list or circular array; an array that shifts every remaining element on each dequeue makes dequeue O(n).", "involves": ["queue", "enqueue", "dequeue"]}
+  ],
+  "misconceptions": [
+    {"id": "dequeue_newest", "wrong": "Dequeue removes the item that was added most recently.", "correct": "That is stack (LIFO) behavior. Dequeue removes the oldest element, the one at the front; the newest element is at the rear and leaves last."},
+    {"id": "same_as_stack", "wrong": "A queue and a stack are basically the same thing, since both just hold a list of items.", "correct": "They differ in removal order: a queue removes from the opposite end from where it inserts (FIFO), while a stack inserts and removes at the same end (LIFO). This changes which problems each one solves."},
+    {"id": "array_shift_is_constant", "wrong": "Using a plain array or Python list and removing index 0 is an O(1) dequeue.", "correct": "Removing index 0 shifts every remaining element, which is O(n). Efficient queues use a linked list, a circular array with front and rear indices that wrap around, or a deque."},
+    {"id": "priority_queue_is_fifo", "wrong": "A priority queue is still a queue, so it is first in, first out.", "correct": "A priority queue removes the element with the highest (or lowest) priority, not the oldest one, so in general it is not FIFO."}
+  ],
+  "breaks_hint": "Real waiting lines allow cutting in, leaving from the middle, or being served by importance, and a plain FIFO queue forbids all three. A line of people also physically shuffles forward, whereas an efficient queue implementation moves front and rear indices instead of shifting every element.",
+  "quiz": [
+    {"id": "q1", "type": "recall", "q": "In what order does a queue remove its elements?", "choices": ["First in, first out", "Last in, first out", "Largest value first", "In random order"], "answer": 0, "explain": "A queue is FIFO: the element that has waited longest (at the front) is removed first."},
+    {"id": "q2", "type": "recall", "q": "Where does the enqueue operation place a new element?", "choices": ["At the front", "At the rear", "In sorted position", "In the middle"], "answer": 1, "explain": "New elements join at the rear, behind everything already waiting; removal happens at the front."},
+    {"id": "q3", "type": "transfer", "q": "Starting with an empty queue, you enqueue 5, enqueue 8, enqueue 2, dequeue, enqueue 7, dequeue. Which element is now at the front?", "choices": ["7", "8", "2", "5"], "answer": 2, "explain": "After the three enqueues the queue is [5, 8, 2]. Dequeue removes 5, enqueue 7 gives [8, 2, 7], and dequeue removes 8, leaving [2, 7] with 2 at the front."},
+    {"id": "q4", "type": "transfer", "q": "Which situation calls for a queue?", "choices": ["Reversing the letters of a word", "Undoing the most recent edit in a text editor", "Matching nested parentheses", "Handling print jobs in the order they were submitted"], "answer": 3, "explain": "Print jobs must be served in arrival order, which is FIFO. The other three tasks need the most recent item first, which is LIFO (a stack)."},
+    {"id": "q5", "type": "misconception", "q": "A student implements a queue with a Python list, using append() to enqueue and pop(0) to dequeue, and claims both operations are O(1). What is true?", "choices": ["The student is right; removing any element of a list is O(1)", "The student is wrong; pop(0) shifts every remaining element, so dequeue is O(n)", "The student is wrong; pop(0) is O(log n)", "The student is right, but only for lists with fewer than 1,000 elements"], "answer": 1, "explain": "Removing the first element of an array-backed list moves all remaining elements one position left, which costs O(n). collections.deque or a circular buffer gives O(1) dequeue."}
+  ],
+  "generic_lesson": "Think of the checkout line at a grocery store. The line is the queue, and each shopper is an element. A new shopper joins at the back of the line, called the rear; that is enqueue. The cashier always serves the shopper at the front; that is dequeue, which removes that person from the line. Glancing at who is at the front without serving them is a peek.\n\nThe central rule is first in, first out (FIFO): whoever has waited longest is served next. If Ana, Ben, and Cal join in that order, they are served as Ana, Ben, then Cal, so a queue preserves arrival order. Each newcomer goes behind everyone already waiting, and after the front shopper leaves, the person behind them becomes the new front. In a proper queue nobody cuts in or leaves from the middle: additions happen only at the rear and removals only at the front.\n\nIf the line is empty, the cashier has no one to serve. In code, dequeuing an empty queue is an error called underflow, so programs check for emptiness first. A well-built queue tracks where the front and rear are instead of making everyone step forward, so enqueue and dequeue each take constant time, O(1), however long the line grows."
+}

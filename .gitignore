@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/canonical.sqlite
+data/anime/*/emb.npy
+data/models/
+.pytest_cache/
+.DS_Store
+
+# Fandom wiki text (CC BY-SA): fetched locally with scripts/fetch_corpus.py, not redistributed
+data/anime/*/*.jsonl
+.serena/

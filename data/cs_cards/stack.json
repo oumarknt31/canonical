@@ -1,0 +1,38 @@
+{
+  "id": "stack",
+  "name": "Stack",
+  "cs2023": "SDF: Fundamental Data Structures",
+  "level": "CS2",
+  "definition": "A stack is a linear abstract data type that stores elements in last-in, first-out (LIFO) order. Elements are added (push) and removed (pop) only at one end, called the top, and peek returns the top element without removing it. With an array or linked-list implementation, push, pop, and peek each take O(1) time (amortized O(1) for push on a resizable array).",
+  "roles": [
+    {"id": "stack", "name": "Stack (container)", "desc": "The collection that holds the elements and only allows access at one end."},
+    {"id": "element", "name": "Element", "desc": "A single item stored in the stack."},
+    {"id": "top", "name": "Top", "desc": "The one accessible end of the stack; the most recently pushed element that has not yet been popped."},
+    {"id": "push", "name": "Push", "desc": "Operation that adds a new element on top of the stack."},
+    {"id": "pop", "name": "Pop", "desc": "Operation that removes the top element and returns it."},
+    {"id": "peek", "name": "Peek / Top", "desc": "Operation that returns the top element without removing it."}
+  ],
+  "relations": [
+    {"id": "lifo_order", "desc": "The most recently pushed element that has not been popped is always the next one popped (last in, first out), so popping everything returns elements in reverse order of pushing.", "involves": ["push", "pop", "element"]},
+    {"id": "push_places_on_top", "desc": "Push places the new element above all existing elements; the previous top element is now directly beneath it and no longer accessible.", "involves": ["push", "top", "element"]},
+    {"id": "pop_removes_top", "desc": "Pop removes and returns exactly the top element, and the element directly beneath it becomes the new top.", "involves": ["pop", "top", "element"]},
+    {"id": "top_only_access", "desc": "Only the top element can be read or removed; an element lower in the stack can be reached only by first popping every element above it.", "involves": ["stack", "top", "element"]},
+    {"id": "underflow_on_empty", "desc": "Calling pop or peek on an empty stack is an error (stack underflow) or returns a sentinel value; it never produces an element.", "involves": ["stack", "pop", "peek"]},
+    {"id": "constant_time_ops", "desc": "Push, pop, and peek each take O(1) time regardless of how many elements the stack holds, because they touch only the top.", "involves": ["push", "pop", "peek", "top"]}
+  ],
+  "misconceptions": [
+    {"id": "items_leave_in_arrival_order", "wrong": "Items come out of a stack in the same order they went in.", "correct": "That is a queue (FIFO). A stack is LIFO: the last element pushed is the first popped, so a stack reverses order."},
+    {"id": "pop_only_looks", "wrong": "Pop just looks at the top item, like peek.", "correct": "Pop removes the top element and returns it; peek (top) returns it without removing it. After a pop, the stack has one fewer element."},
+    {"id": "random_access", "wrong": "If a stack is stored in an array, I can grab any item from the middle whenever I want.", "correct": "The stack abstract data type exposes only the top. An array may be used to implement it, but using a stack means restricting access to push, pop, and peek at the top."},
+    {"id": "empty_pop_harmless", "wrong": "Popping an empty stack is harmless; it just gives back nothing or zero.", "correct": "Popping or peeking an empty stack is a stack underflow error (an exception in most libraries), so code should check whether the stack is empty first."}
+  ],
+  "breaks_hint": "Physical piles (plates, books) let you slide an item out from the middle or lift several at once, while the stack ADT allows access to exactly one top element at a time. Everyday piles also never capture that popping an empty stack is an error (underflow).",
+  "quiz": [
+    {"id": "q1", "type": "recall", "q": "In what order does a stack remove its elements?", "choices": ["First in, first out", "Last in, first out", "Smallest value first", "In random order"], "answer": 1, "explain": "A stack is LIFO: the most recently pushed element that has not been popped is removed first."},
+    {"id": "q2", "type": "recall", "q": "What does the peek (top) operation do?", "choices": ["Removes the top element and returns it", "Returns the bottom element", "Returns the top element without removing it", "Removes every element from the stack"], "answer": 2, "explain": "Peek reads the top element but leaves the stack unchanged; pop is the operation that removes it."},
+    {"id": "q3", "type": "transfer", "q": "Starting with an empty stack, you push 1, push 2, push 3, pop, push 4, pop, pop. What value does the final pop return?", "choices": ["4", "3", "1", "2"], "answer": 3, "explain": "After pushing 1, 2, 3 the stack is [1, 2, 3]. Pop returns 3, push 4 gives [1, 2, 4], pop returns 4, and the final pop returns 2."},
+    {"id": "q4", "type": "transfer", "q": "Which task is most naturally solved with a stack?", "choices": ["Checking whether the brackets in an expression like ( [ ] { } ) are balanced", "Printing documents in the order they were submitted", "Finding the largest number in an unsorted list in one pass", "Looking up a phone number by a person's name"], "answer": 0, "explain": "Each opening bracket is pushed; each closing bracket must match the most recent unmatched opening bracket, which is exactly the top of the stack (LIFO). Print jobs need FIFO (a queue), and name lookup suits a hash table."},
+    {"id": "q5", "type": "misconception", "q": "A student pushes A, then B, then C onto an empty stack and says: \"The next pop returns A, because A went in first.\" What is correct?", "choices": ["The student is right; stacks return the earliest item first", "The student is wrong; pop returns C, the most recently pushed item", "The student is wrong; pop returns B, the middle item", "It depends on how many items the stack can hold"], "answer": 1, "explain": "Returning the earliest item is queue (FIFO) behavior. A stack is LIFO, so pop returns C."}
+  ],
+  "generic_lesson": "Picture a spring-loaded holder of trays in a cafeteria. The holder is the stack, and each tray is an element. A worker adds a clean tray by setting it on top; that is a push. A diner takes the tray on top; that is a pop, which both removes the tray and hands it over. Looking at the top tray without taking it is a peek. The only tray anyone can reach is the top one.\n\nThe central rule is last in, first out (LIFO): the tray placed most recently is always the first one taken. If trays A, B, and C are added in that order, they come off as C, B, then A, so a stack reverses order. Each push puts the new tray above all the others, and each pop exposes the tray just beneath it as the new top. You cannot pull B out of the middle; to reach B, you must first remove C.\n\nIf the holder is empty and someone tries to take a tray, nothing can be handed over. In code this is an error called stack underflow, so programs check whether a stack is empty before popping or peeking. Because every operation touches only the top, push, pop, and peek each take constant time, O(1), no matter how many elements are stored."
+}

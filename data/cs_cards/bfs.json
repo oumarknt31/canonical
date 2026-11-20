@@ -1,0 +1,186 @@
+{
+  "id": "bfs",
+  "name": "Breadth-First Search (BFS)",
+  "cs2023": "AL: Foundational Data Structures and Algorithms",
+  "level": "CS2",
+  "definition": "Breadth-first search (BFS) is a graph traversal algorithm that starts at a source vertex and visits vertices in order of increasing distance, measured in edges, from that source: first all its neighbors, then their unvisited neighbors, and so on. It keeps the frontier in a FIFO queue and uses a visited set so each vertex is processed at most once. With adjacency lists it runs in O(V + E) time, and in an unweighted graph it finds a shortest path (fewest edges) from the source to every reachable vertex.",
+  "roles": [
+    {
+      "id": "graph",
+      "name": "Graph",
+      "desc": "The set of vertices and the edges connecting them that is being traversed."
+    },
+    {
+      "id": "source",
+      "name": "Source vertex",
+      "desc": "The starting vertex; it is at distance 0 and is enqueued first."
+    },
+    {
+      "id": "queue",
+      "name": "Queue (frontier)",
+      "desc": "FIFO queue holding vertices that have been discovered but whose neighbors have not yet been examined."
+    },
+    {
+      "id": "visited",
+      "name": "Visited set",
+      "desc": "Record of vertices already discovered, used to skip vertices that have been seen before."
+    },
+    {
+      "id": "expand",
+      "name": "Dequeue and expand",
+      "desc": "Step that removes the front vertex from the queue and examines each of its neighbors, enqueuing the unvisited ones."
+    },
+    {
+      "id": "distance_parent",
+      "name": "Distance / parent",
+      "desc": "For each discovered vertex, its distance (level) from the source and the vertex it was discovered from, which lets a path be reconstructed."
+    }
+  ],
+  "relations": [
+    {
+      "id": "fifo_frontier",
+      "desc": "Discovered vertices are processed in the order they were discovered, because the frontier is a FIFO queue; this is what makes BFS expand outward level by level.",
+      "involves": [
+        "queue",
+        "source",
+        "expand"
+      ]
+    },
+    {
+      "id": "levels_in_order",
+      "desc": "Every vertex at distance k from the source is dequeued before any vertex at distance k + 1.",
+      "involves": [
+        "queue",
+        "distance_parent",
+        "source"
+      ]
+    },
+    {
+      "id": "mark_on_discovery",
+      "desc": "A vertex is marked visited when it is first discovered (enqueued), and visited neighbors are skipped, so each vertex is enqueued at most once and cycles cannot cause an infinite loop.",
+      "involves": [
+        "visited",
+        "queue",
+        "expand"
+      ]
+    },
+    {
+      "id": "shortest_path_unweighted",
+      "desc": "In an unweighted graph, the distance at which BFS first discovers a vertex equals the fewest edges on any path from the source, and following parent links back to the source gives such a shortest path; this does not hold for total weight in weighted graphs.",
+      "involves": [
+        "distance_parent",
+        "source",
+        "graph"
+      ]
+    },
+    {
+      "id": "reachable_only",
+      "desc": "BFS from one source visits exactly the vertices reachable from that source; vertices in other connected components are never visited unless BFS is restarted from them.",
+      "involves": [
+        "source",
+        "graph",
+        "visited"
+      ]
+    },
+    {
+      "id": "linear_time",
+      "desc": "With adjacency lists, BFS takes O(V + E) time: each vertex is enqueued and dequeued at most once and each edge is examined a constant number of times.",
+      "involves": [
+        "graph",
+        "queue",
+        "expand"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "shortest_in_weighted",
+      "wrong": "BFS finds the shortest path in any graph, including graphs whose edges have different weights.",
+      "correct": "BFS minimizes the number of edges, not total weight. For non-negative edge weights, use Dijkstra's algorithm."
+    },
+    {
+      "id": "no_visited_needed",
+      "wrong": "As long as I use a queue, I don't need a visited set.",
+      "correct": "In a graph with cycles, vertices would be enqueued again and again, possibly forever. A visited set (or distance array) ensures each vertex is processed once. Only trees traversed from the root can skip it."
+    },
+    {
+      "id": "stack_still_bfs",
+      "wrong": "If I swap the queue for a stack, it's still breadth-first search.",
+      "correct": "Using a LIFO stack explores the most recently discovered vertex first, which gives a depth-first order. The level-by-level order and the shortest-path guarantee are lost."
+    },
+    {
+      "id": "visits_everything",
+      "wrong": "BFS from any starting vertex visits every vertex in the graph.",
+      "correct": "It visits only vertices reachable from the source. To cover a disconnected graph, run BFS again from each still-unvisited vertex."
+    }
+  ],
+  "breaks_hint": "Ripples-in-a-pond analogies capture the level-by-level spread but hide the queue that enforces the order and the visited set that prevents revisits. They also suggest physical distance, while BFS's shortest-path guarantee counts only edges in an unweighted graph.",
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "recall",
+      "q": "Which data structure does BFS use to hold its frontier of discovered vertices?",
+      "choices": [
+        "Stack (LIFO)",
+        "Priority queue keyed by edge weight",
+        "Queue (FIFO)",
+        "Binary search tree"
+      ],
+      "answer": 2,
+      "explain": "A FIFO queue processes vertices in discovery order, which produces level-by-level traversal. A stack would give DFS; a priority queue by weight is Dijkstra."
+    },
+    {
+      "id": "q2",
+      "type": "recall",
+      "q": "What is the time complexity of BFS on a graph stored as adjacency lists, with V vertices and E edges?",
+      "choices": [
+        "O(V + E)",
+        "O(V log V)",
+        "O(V * E)",
+        "O(E^2)"
+      ],
+      "answer": 0,
+      "explain": "Each vertex is enqueued and dequeued at most once, and each adjacency list is scanned once, giving O(V + E)."
+    },
+    {
+      "id": "q3",
+      "type": "transfer",
+      "q": "An undirected graph has edges A-B, A-C, B-D, C-D, and D-E. Run BFS from A, examining neighbors in alphabetical order. In what order are vertices visited?",
+      "choices": [
+        "A, B, D, E, C",
+        "A, B, C, D, E",
+        "A, C, D, E, B",
+        "A, B, D, C, E"
+      ],
+      "answer": 1,
+      "explain": "Level 0 is A; level 1 is B and C (A's neighbors); level 2 is D (discovered from B; C's neighbor D is already visited); level 3 is E. A, B, D, C, E is the DFS order."
+    },
+    {
+      "id": "q4",
+      "type": "transfer",
+      "q": "A robot moves on a grid maze one cell at a time, and every move costs the same. Which approach is guaranteed to find a route to the exit with the fewest moves?",
+      "choices": [
+        "DFS, stopping the first time it reaches the exit",
+        "Visiting cells in random order until the exit is found",
+        "Binary search over the cell coordinates",
+        "BFS from the start; the first time the exit is discovered gives the fewest moves"
+      ],
+      "answer": 3,
+      "explain": "The grid is an unweighted graph, so BFS discovers each cell at its minimum number of moves from the start. DFS may find the exit by a long, winding route."
+    },
+    {
+      "id": "q5",
+      "type": "misconception",
+      "q": "A student says: \"BFS will give me the shortest driving route on a road map where each road segment has a different length in miles.\" Is this right?",
+      "choices": [
+        "Yes; BFS always finds shortest paths",
+        "No; BFS minimizes the number of edges, not total length, so a weighted shortest-path algorithm such as Dijkstra's is needed",
+        "Yes, as long as the road map has no cycles",
+        "No; BFS cannot run on a graph that has edge weights at all"
+      ],
+      "answer": 1,
+      "explain": "BFS can traverse a weighted graph, but it ignores the weights. A route with fewer roads can be longer in miles, so BFS's fewest-edges path is not the shortest-distance path."
+    }
+  ],
+  "generic_lesson": "Imagine spreading news among friends: the graph is people (vertices) connected by friendships (edges). You are the source. On day one, you tell all your friends. On day two, each of them tells their friends who haven't heard yet, and so on. That is breadth-first search: it reaches everyone one step away before anyone two steps away.\n\nBFS uses a queue, a first-in, first-out waiting list. You start with just yourself in it. Each time, you take the person at the front, look at each of their friends, and add anyone new to the back of the line. Because people are handled in the order they were found, BFS moves outward level by level.\n\nBFS also keeps a visited list of everyone who has already heard. When a friend is already on it, you skip them, so nobody is added twice and circles of friends can't cause an endless loop. Writing down who told each person lets you trace a path back to the source.\n\nThe level where someone is first reached equals the fewest links between you and them, so BFS finds shortest paths when all links count equally, not when links have different costs. People with no chain of friendships to you are never reached. BFS takes time proportional to people plus friendships, O(V + E)."
+}

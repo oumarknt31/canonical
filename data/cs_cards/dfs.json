@@ -1,0 +1,185 @@
+{
+  "id": "dfs",
+  "name": "Depth-First Search (DFS)",
+  "cs2023": "AL: Foundational Data Structures and Algorithms",
+  "level": "CS2",
+  "definition": "Depth-first search (DFS) is a graph traversal algorithm that starts at a source vertex and follows one path as far as possible, moving to an unvisited neighbor at each step, and backtracks only when the current vertex has no unvisited neighbors left. It is implemented with recursion (using the call stack) or with an explicit LIFO stack, plus a visited set so each vertex is processed at most once. With adjacency lists it runs in O(V + E) time, but unlike BFS it does not in general find shortest paths.",
+  "roles": [
+    {
+      "id": "graph",
+      "name": "Graph",
+      "desc": "The set of vertices and the edges connecting them that is being traversed."
+    },
+    {
+      "id": "source",
+      "name": "Source vertex",
+      "desc": "The vertex where the traversal starts."
+    },
+    {
+      "id": "stack",
+      "name": "Stack / call stack",
+      "desc": "LIFO structure (an explicit stack or the recursion call stack) holding the current path of vertices being explored."
+    },
+    {
+      "id": "visited_set",
+      "name": "Visited set",
+      "desc": "Record of vertices already reached, used so that no vertex is explored twice."
+    },
+    {
+      "id": "advance",
+      "name": "Advance (go deeper)",
+      "desc": "Step that moves from the current vertex to one of its unvisited neighbors, which becomes the new current vertex."
+    },
+    {
+      "id": "backtrack",
+      "name": "Backtrack",
+      "desc": "Step that returns from a vertex with no unvisited neighbors to the vertex it was reached from, to try that vertex's remaining neighbors."
+    }
+  ],
+  "relations": [
+    {
+      "id": "deep_before_wide",
+      "desc": "From the current vertex, DFS immediately moves to an unvisited neighbor and fully explores everything reachable through it before trying the current vertex's other neighbors.",
+      "involves": [
+        "advance",
+        "stack",
+        "graph"
+      ]
+    },
+    {
+      "id": "lifo_frontier",
+      "desc": "The most recently reached vertex is always the next one explored, because the frontier is a LIFO stack (explicit or the recursion call stack).",
+      "involves": [
+        "stack",
+        "advance"
+      ]
+    },
+    {
+      "id": "backtrack_when_stuck",
+      "desc": "When the current vertex has no unvisited neighbors, DFS backtracks one step to the previous vertex on the stack, not to the source; the traversal from the source ends when the stack is empty.",
+      "involves": [
+        "backtrack",
+        "stack",
+        "source"
+      ]
+    },
+    {
+      "id": "visited_prevents_revisits",
+      "desc": "A vertex is marked visited when first reached and is never explored again, so cycles cannot cause an infinite loop and each vertex is processed once.",
+      "involves": [
+        "visited_set",
+        "advance",
+        "graph"
+      ]
+    },
+    {
+      "id": "reachable_only",
+      "desc": "DFS from one source visits exactly the vertices reachable from it; covering a disconnected graph requires restarting DFS from each still-unvisited vertex.",
+      "involves": [
+        "source",
+        "graph",
+        "visited_set"
+      ]
+    },
+    {
+      "id": "no_shortest_path_guarantee",
+      "desc": "The path along which DFS first reaches a vertex is not necessarily a shortest path; it depends on the order in which neighbors are tried.",
+      "involves": [
+        "source",
+        "advance",
+        "graph"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "dfs_finds_shortest",
+      "wrong": "DFS finds the shortest path, because it heads straight toward the target.",
+      "correct": "DFS commits to one branch at a time and may reach a vertex along a long path when a shorter one exists. For fewest edges in an unweighted graph, use BFS."
+    },
+    {
+      "id": "backtrack_to_start",
+      "wrong": "Backtracking means going all the way back to the starting vertex and starting over.",
+      "correct": "DFS backtracks only to the most recent vertex on the stack that still has unvisited neighbors, and it never restarts exploration of vertices already visited."
+    },
+    {
+      "id": "no_visited_needed",
+      "wrong": "DFS doesn't need a visited set because it eventually backtracks anyway.",
+      "correct": "In a graph with a cycle, DFS without a visited set can go around the cycle forever. The visited set guarantees each vertex is explored once. Only trees can skip it."
+    },
+    {
+      "id": "unique_order",
+      "wrong": "Every graph has exactly one correct DFS order.",
+      "correct": "The visiting order depends on the starting vertex and the order in which neighbors are examined; many different orders are valid DFS traversals of the same graph."
+    }
+  ],
+  "breaks_hint": "Maze-walking analogies capture going deep and backtracking but often imply returning all the way to the entrance, or remembering only the current path rather than a global visited set. They also suggest DFS finds the exit by a good route, which it does not guarantee.",
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "recall",
+      "q": "Besides a visited set, which data structure does an iterative (non-recursive) DFS use?",
+      "choices": [
+        "Queue (FIFO)",
+        "Stack (LIFO)",
+        "Min-heap",
+        "Sorted array"
+      ],
+      "answer": 1,
+      "explain": "DFS always explores the most recently discovered vertex next, which is LIFO. A recursive DFS uses the call stack for the same purpose. A queue would give BFS."
+    },
+    {
+      "id": "q2",
+      "type": "recall",
+      "q": "When does DFS backtrack?",
+      "choices": [
+        "When the current vertex has no unvisited neighbors",
+        "After it finishes all vertices at the current distance from the source",
+        "Every time it moves along an edge",
+        "Only when it returns to the source vertex"
+      ],
+      "answer": 0,
+      "explain": "DFS keeps going deeper while an unvisited neighbor exists and steps back only when it is stuck. Finishing a whole distance level is BFS behavior."
+    },
+    {
+      "id": "q3",
+      "type": "transfer",
+      "q": "An undirected graph has edges A-B, A-C, B-D, C-D, and D-E. Run recursive DFS from A, examining neighbors in alphabetical order. In what order are vertices first visited?",
+      "choices": [
+        "A, B, C, D, E",
+        "A, C, D, B, E",
+        "A, B, D, E, C",
+        "A, B, D, C, E"
+      ],
+      "answer": 3,
+      "explain": "A goes to B, B goes to D, and D's first unvisited neighbor alphabetically is C. C has no unvisited neighbors, so DFS backtracks to D and visits E. A, B, C, D, E is the BFS order."
+    },
+    {
+      "id": "q4",
+      "type": "transfer",
+      "q": "Which task is DFS especially well suited for?",
+      "choices": [
+        "Finding the route with the fewest edges between two cities",
+        "Detecting whether a directed graph contains a cycle, by finding an edge back to a vertex still on the current DFS path",
+        "Serving customer requests in the order they arrive",
+        "Looking up a value by key in constant average time"
+      ],
+      "answer": 1,
+      "explain": "In a directed graph, DFS finds a cycle exactly when it meets an edge to a vertex that is still on the recursion stack (a back edge). Fewest-edges routes need BFS."
+    },
+    {
+      "id": "q5",
+      "type": "misconception",
+      "q": "A student's DFS from vertex A first reaches vertex X along a path of 5 edges, and the student concludes that the shortest path from A to X has 5 edges. Is this valid?",
+      "choices": [
+        "Yes; DFS always reaches each vertex by its shortest path first",
+        "Yes, as long as the graph is undirected",
+        "No; DFS can reach X by a long path even when a shorter one exists, so BFS is needed for fewest edges",
+        "No; DFS can never reach a vertex 5 edges away"
+      ],
+      "answer": 2,
+      "explain": "The first path DFS finds depends on neighbor order. For example, if A connects directly to X but DFS tries a different neighbor first, it may reach X through a long detour."
+    }
+  ],
+  "generic_lesson": "Imagine exploring a large cave system, where the graph is chambers (vertices) joined by tunnels (edges). You start at the entrance chamber, the source. In each chamber you pick a tunnel leading somewhere you haven't been and follow it, going deeper. That is depth-first search: it commits to one path as far as it can go before trying alternatives.\n\nYou mark each chamber with chalk when you first enter it. This is the visited set. If a tunnel leads to a chalk-marked chamber, you skip it, so loops in the cave can't trap you walking in circles, and no chamber is explored twice.\n\nWhen you reach a chamber whose tunnels all lead to marked chambers, you backtrack: walk back one step to the chamber you came from and try its next unexplored tunnel. You do not return to the entrance unless every chamber along the way is finished. A trail of string recording your current path works like a stack, last in, first out; in code, recursion's call stack plays the same role. The search ends when you have backtracked all the way out.\n\nDFS reaches every chamber connected to the entrance, in time proportional to chambers plus tunnels, O(V + E), but the first route to a chamber may be long. It does not guarantee shortest paths."
+}
