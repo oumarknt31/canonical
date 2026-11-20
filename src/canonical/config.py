@@ -26,7 +26,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "")
 GEMINI_EMBED_MODEL = os.getenv("GEMINI_EMBED_MODEL", "")
 # Free-tier keys are rate limited per minute; we space calls to stay under it.
-GEMINI_RPM = float(os.getenv("GEMINI_RPM", "10"))
+GEMINI_RPM = float(os.getenv("GEMINI_RPM", "5"))
 
 USER_AGENT = "canonical-student-project/0.1 (CUNY Tech Prep educational project; low-volume)"
 
