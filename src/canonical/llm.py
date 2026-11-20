@@ -32,6 +32,10 @@ class LLMError(RuntimeError):
     pass
 
 
+class DailyQuotaError(LLMError):
+    """The free tier's per-day cap is used up; rerun after it resets (midnight Pacific)."""
+
+
 _client = None
 _model = GEMINI_MODEL or None
 _embed_model = GEMINI_EMBED_MODEL or None
@@ -109,6 +113,11 @@ def _wait_turn():
         _last_call = time.time()
 
 
+def _is_daily(msg: str) -> bool:
+    """Free-tier per-day caps reset at midnight Pacific; retrying before then only wastes time."""
+    return "PerDay" in msg or "per day" in msg.lower()
+
+
 def _key(*parts) -> str:
     return hashlib.sha256("\x1f".join(str(p) for p in parts).encode()).hexdigest()
 
@@ -142,6 +151,8 @@ def generate(prompt: str, system: str = "", *, json_mode: bool = False, temperat
             return text
         except Exception as e:  # rate limits and transient server errors: back off and retry
             msg = str(e)
+            if _is_daily(msg):
+                raise DailyQuotaError(msg[:500]) from e
             transient = any(s in msg for s in ("429", "RESOURCE_EXHAUSTED", "500", "503", "UNAVAILABLE",
                                                "DEADLINE", "empty response", "overloaded"))
             if not transient or attempt == 5:
@@ -192,6 +203,8 @@ def embed(texts: list[str], task: str = "RETRIEVAL_DOCUMENT") -> list[list[float
                                                   config=types.EmbedContentConfig(task_type=task))
                 break
             except Exception as e:
+                if _is_daily(str(e)):
+                    raise DailyQuotaError(str(e)[:500]) from e
                 if attempt == 5 or not any(s_ in str(e) for s_ in ("429", "RESOURCE_EXHAUSTED", "500", "503")):
                     raise LLMError(str(e)[:500]) from e
                 time.sleep(delay)
